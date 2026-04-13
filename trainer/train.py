@@ -19,6 +19,8 @@ def train():
 
             next_state, reward, done = env.step(action)
 
+            agent.update_q(state, action, reward, next_state)
+
             total_reward += reward
             state = next_state
 
