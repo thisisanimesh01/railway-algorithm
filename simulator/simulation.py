@@ -3,9 +3,10 @@ from agent.decision_agent import DecisionAgent
 from engine.track_manager import TrackManager
 
 class Simulator:
-    def __init__(self, trains):
+    def __init__(self, trains , network):
         self.trains = trains
         self.agent = DecisionAgent()
+        self.network = network
         self.track_manager = TrackManager()
 
     def step(self):
@@ -15,14 +16,14 @@ class Simulator:
 
             if train.status == "RUNNING" and train.next_station:
 
-                if not self.track_manager.is_occupied(train.current_station, train.next_station):
+                if self.track_manager.can_use(train.current_station, train.next_station):
                     self.track_manager.occupy(train.current_station, train.next_station)
                     train.move()
 
                 else:
                     train.status = "STOPPED"
                     train.wait_time = 1
-                    print(f"Train {train.train_id} stopped (track occupied)")
+                    print(f"Train {train.train_id} waiting (no free track)")
 
             else:
                 train.move()
