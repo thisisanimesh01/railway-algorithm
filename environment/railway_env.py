@@ -27,25 +27,30 @@ class RailwayEnv:
         return self.state_manager.get_state()
 
     def step(self, action):
-        """
-        action = which train to allow / which decision to take
-        """
-
         reward = 0
 
         current_trains = self.state_manager.trains
+
         conflicts = self.conflict_detector.check(current_trains)
-        conflict = len(conflicts) > 0
 
-        if conflict:
-            reward -= 10  # penalty
+        if conflicts:
+            reward -= 15
         else:
-            success = self.track_manager.assign(action)
+            reward += 10
 
-            if success:
-                reward += 5
-            else:
-                reward -= 2
+        success = self.track_manager.assign(action)
+
+        if success:
+            reward += 20
+        else:
+            reward -= 5
+
+        if action:
+            reward += action.priority * 5
+
+        for train in current_trains:
+            if train != action:
+                reward -= train.wait_time * 0.1
 
         self.state_manager.update(action)
 

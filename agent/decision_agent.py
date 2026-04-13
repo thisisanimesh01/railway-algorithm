@@ -3,14 +3,16 @@ import random
 
 class DecisionAgent:
     def __init__(self):
-        self.q_table = {}  # state → action value
+        self.q_table = {}
 
-        self.epsilon = 0.3  # exploration
-        self.alpha = 0.1    # learning rate
-        self.gamma = 0.9    # discount
+        self.epsilon = 1.0
+        self.min_epsilon = 0.05
+        self.decay = 0.98
+
+        self.alpha = 0.1
+        self.gamma = 0.9
 
     def get_state_key(self, state):
-        # simple representation
         return tuple((t.train_id, t.current_station) for t in state["waiting_trains"])
 
     def choose_action(self, state):
@@ -19,11 +21,9 @@ class DecisionAgent:
         if not trains:
             return None
 
-        # exploration
         if random.random() < self.epsilon:
             return random.choice(trains)
 
-        # exploitation
         state_key = self.get_state_key(state)
 
         if state_key not in self.q_table:
@@ -42,6 +42,9 @@ class DecisionAgent:
         return best_train if best_train else random.choice(trains)
 
     def update_q(self, state, action, reward, next_state):
+        if action is None:
+            return
+
         state_key = self.get_state_key(state)
         next_key = self.get_state_key(next_state)
 
@@ -60,3 +63,7 @@ class DecisionAgent:
         new_q = current_q + self.alpha * (reward + self.gamma * max_next_q - current_q)
 
         self.q_table[state_key][action.train_id] = new_q
+
+    def decay_epsilon(self):
+        if self.epsilon > self.min_epsilon:
+            self.epsilon *= self.decay

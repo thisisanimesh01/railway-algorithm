@@ -6,7 +6,8 @@ def train():
     env = RailwayEnv()
     agent = DecisionAgent()
 
-    episodes = 10
+    episodes = 200
+    rewards = []
 
     for ep in range(episodes):
         state = env.reset()
@@ -24,7 +25,13 @@ def train():
             total_reward += reward
             state = next_state
 
-        print(f"Episode {ep+1} → Total Reward: {total_reward}")
+        agent.decay_epsilon()
+
+        rewards.append(total_reward)
+
+        print(f"Episode {ep+1} → Total Reward: {total_reward:.2f}")     # episode = one complete of train movement from start to finish, reward = cumulative reward for that episode
+
+    print(f"Average Reward: {sum(rewards)/len(rewards):.2f}")
 
 
 if __name__ == "__main__":
