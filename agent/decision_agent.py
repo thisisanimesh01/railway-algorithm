@@ -4,18 +4,19 @@ class DecisionAgent:
 
         for t1, t2 in conflicts:
 
-            # Decide based on priority
             if t1.priority > t2.priority:
                 t2.status = "STOPPED"
-                actions.append(f"Train {t2.train_id} stopped (lower priority) vs Train {t1.train_id}")
+                t2.wait_time = 2  # wait for 2 steps
+                actions.append(f"Train {t2.train_id} stopped for 2 steps (lower priority)")
 
             elif t2.priority > t1.priority:
                 t1.status = "STOPPED"
-                actions.append(f"Train {t1.train_id} stopped (lower priority) vs Train {t2.train_id}")
+                t1.wait_time = 2
+                actions.append(f"Train {t1.train_id} stopped for 2 steps (lower priority)")
 
             else:
-                # Same priority → fallback rule
                 t2.status = "STOPPED"
-                actions.append(f"Train {t2.train_id} stopped (tie-breaker) vs Train {t1.train_id}")
+                t2.wait_time = 1
+                actions.append(f"Train {t2.train_id} stopped (tie-breaker)")
 
         return actions

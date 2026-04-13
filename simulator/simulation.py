@@ -9,7 +9,6 @@ class Simulator:
     def step(self):
         # Move trains
         for train in self.trains:
-            if train.status == "RUNNING":
                 train.move()
 
         # Detect conflicts

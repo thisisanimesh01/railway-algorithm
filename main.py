@@ -18,6 +18,6 @@ train2 = Train(2, "A", ["A", "B", "C"], priority=1)  # Goods
 sim = Simulator([train1, train2])
 
 # Run simulation
-for _ in range(3):
+for _ in range(5):
     print("\n--- STEP ---")
     sim.step()
