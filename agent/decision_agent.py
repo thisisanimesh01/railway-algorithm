@@ -13,7 +13,16 @@ class DecisionAgent:
         self.gamma = 0.9
 
     def get_state_key(self, state):
-        return tuple((t.train_id, t.current_station) for t in state["waiting_trains"])
+        return tuple(
+            (
+                t.train_id,
+                t.current_station,
+                t.next_station,
+                t.priority,
+                t.wait_time
+            )
+            for t in state["waiting_trains"]
+        )
 
     def choose_action(self, state):
         trains = state["waiting_trains"]
