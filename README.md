@@ -15,6 +15,12 @@ Unlike simplistic simulations, this project models realistic railway constraints
 
 ---
 
+## Tech Stack
+* Python 3.8+
+* NetworkX for graph representation of the railway network
+* Custom scheduling algorithms for train movement and track management
+* Optional: Visualization tools for monitoring train movements and track usage
+
 ## Features
 
 ### Fixed Route Scheduling
