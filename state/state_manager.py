@@ -40,18 +40,22 @@ class StateManager:
         for t in self.trains:
             route_index = t.route.index(t.current_station)
 
+            can_move = False
+            if t.next_station:
+                # simple flag (we improve later)
+                can_move = True
+
             state.append({
                 "id": t.train_id,
                 "current": t.current_station,
                 "next": t.next_station,
                 "priority": t.priority,
                 "wait_time": t.wait_time,
-                "remaining_stops": len(t.route) - route_index - 1
+                "remaining_stops": len(t.route) - route_index - 1,
+                "can_move": can_move
             })
 
-        return {
-            "trains": state
-        }
+        return {"trains": state}
 
     def update(self, action):
         # no forced update (RL decides movement)

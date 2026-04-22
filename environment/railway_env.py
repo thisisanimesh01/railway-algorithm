@@ -36,33 +36,33 @@ class RailwayEnv:
                 selected_train = t
                 break
 
-        #  Conflict penalty
+        #  Conflict penalty (reduced but still important)
         conflicts = self.conflict_detector.check(trains)
         if conflicts:
-            reward -= 100
+            reward += 60
 
-        # Action execution
+        #  MOVE action only
         if action_type == "MOVE" and selected_train:
             success = self.track_manager.assign(selected_train)
 
             if success:
                 selected_train.move()
-                reward += 30
+                reward += 40
             else:
                 selected_train.wait_time += 1
-                reward -= 10
+                reward -= t.wait_time * 0.05  #  Waiting penalty for failed move (reduced)
 
-        elif action_type == "STOP" and selected_train:
-            selected_train.wait_time += 1
-            reward -= 2
-
-        #  waiting penalty
+        #  Waiting penalty (reduced)
         for t in trains:
-            reward -= t.wait_time * 0.5
+            reward -= t.wait_time * 0.1
 
-        # priority reward
+        #  Priority reward
         if selected_train:
-            reward += selected_train.priority * 5
+            reward += selected_train.priority * 3
+
+        # Destination reward (very important)
+        if selected_train and selected_train.next_station is None:
+            reward += 100
 
         self.time_step += 1
 

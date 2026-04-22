@@ -13,31 +13,33 @@ class DecisionAgent:
         self.gamma = 0.9
 
     def get_state_key(self, state):
-        return tuple(
-            (
-                t["id"],
+        key = []
+
+        for t in state["trains"]:
+            key.append((
                 t["current"],
                 t["next"],
-                t["priority"],
-                t["wait_time"],
-                t["remaining_stops"]
-            )
-            for t in state["trains"]
-        )
+                t["priority"]
+            ))
+
+        return tuple(key)
 
     def choose_action(self, state):
         actions = []
 
+        # Only MOVE actions (no STOP)
         for t in state["trains"]:
-            actions.append(("MOVE", t["id"]))
-            actions.append(("STOP", t["id"]))
+            if t["next"] is not None:
+                actions.append(("MOVE", t["id"]))
 
         if not actions:
             return None
 
+        # Exploration
         if random.random() < self.epsilon:
             return random.choice(actions)
 
+        # Exploitation
         state_key = self.get_state_key(state)
 
         if state_key not in self.q_table:
@@ -82,4 +84,4 @@ class DecisionAgent:
 
     def decay_epsilon(self):
         if self.epsilon > self.min_epsilon:
-            self.epsilon *= self.decay
+            self.epsilon = max(self.min_epsilon, self.epsilon * 0.995)

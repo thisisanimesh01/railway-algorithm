@@ -6,7 +6,7 @@ def train():
     env = RailwayEnv()
     agent = DecisionAgent()
 
-    episodes = 200
+    episodes = 500
     rewards = []
 
     for ep in range(episodes):
