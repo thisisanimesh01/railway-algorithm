@@ -11,11 +11,7 @@ class Train:
 
     def move(self):
         if self.status == "STOPPED":
-            if self.wait_time > 0:
-                self.wait_time -= 1
-                return
-
-            self.status = "RUNNING"
+            return
 
         if self.next_station:
             self.current_station = self.next_station
@@ -39,16 +35,24 @@ class StateManager:
         ]
 
     def get_state(self):
+        state = []
+
+        for t in self.trains:
+            route_index = t.route.index(t.current_station)
+
+            state.append({
+                "id": t.train_id,
+                "current": t.current_station,
+                "next": t.next_station,
+                "priority": t.priority,
+                "wait_time": t.wait_time,
+                "remaining_stops": len(t.route) - route_index - 1
+            })
+
         return {
-            "waiting_trains": self.trains
+            "trains": state
         }
 
     def update(self, action):
-        # increase wait time for others
-        for train in self.trains:
-            if train != action:
-                train.wait_time += 1
-
-        if action:
-            action.wait_time = 0
-            action.move()
+        # no forced update (RL decides movement)
+        pass

@@ -1,4 +1,3 @@
-from engine.conflict_detector import detect_conflicts
 from agent.decision_agent import DecisionAgent
 from engine.track_manager import TrackManager
 from state.state_manager import StateManager
@@ -18,26 +17,37 @@ class Simulator:
         self.track_manager.release_all()
 
         state = self.state_manager.get_state()
-
         action = self.agent.choose_action(state)
 
+        action_type, train_id = action if action else (None, None)
+
+        selected_train = None
+        for t in self.trains:
+            if t.train_id == train_id:
+                selected_train = t
+                break
+
         for train in self.trains:
+            train.status = "STOPPED"
 
-            if train.status == "STOPPED":
-                train.move()
-                continue
-
-            if train == action and train.next_station:
-
-                if self.track_manager.can_use(train.current_station, train.next_station):
-                    self.track_manager.occupy(train.current_station, train.next_station)
-                    train.move()
-
-                else:
-                    train.status = "STOPPED"
-                    train.wait_time = 1
-                    print(f"Train {train.train_id} waiting (no free track)")
-
+        if action_type == "MOVE" and selected_train:
+            if selected_train.next_station and self.track_manager.can_use(
+                selected_train.current_station, selected_train.next_station
+            ):
+                self.track_manager.occupy(
+                    selected_train.current_station,
+                    selected_train.next_station
+                )
+                selected_train.status = "RUNNING"
+                selected_train.move()
+                selected_train.wait_time = 0
             else:
-                train.status = "STOPPED"
+                selected_train.wait_time += 1
+
+        elif action_type == "STOP" and selected_train:
+            selected_train.wait_time += 1
+
+        # increase wait time for others
+        for train in self.trains:
+            if train != selected_train:
                 train.wait_time += 1

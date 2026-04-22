@@ -13,7 +13,6 @@ class RailwayEnv:
         self.done = False
 
     def reset(self):
-        # Reset everything
         self.track_manager.reset()
         self.state_manager.reset()
 
@@ -23,36 +22,47 @@ class RailwayEnv:
         return self.get_state()
 
     def get_state(self):
-        # Return current system state
         return self.state_manager.get_state()
 
     def step(self, action):
         reward = 0
+        trains = self.state_manager.trains
 
-        current_trains = self.state_manager.trains
+        action_type, train_id = action if action else (None, None)
 
-        conflicts = self.conflict_detector.check(current_trains)
+        selected_train = None
+        for t in trains:
+            if t.train_id == train_id:
+                selected_train = t
+                break
 
+        #  Conflict penalty
+        conflicts = self.conflict_detector.check(trains)
         if conflicts:
-            reward -= 15
-        else:
-            reward += 10
+            reward -= 100
 
-        success = self.track_manager.assign(action)
+        # Action execution
+        if action_type == "MOVE" and selected_train:
+            success = self.track_manager.assign(selected_train)
 
-        if success:
-            reward += 20
-        else:
-            reward -= 5
+            if success:
+                selected_train.move()
+                reward += 30
+            else:
+                selected_train.wait_time += 1
+                reward -= 10
 
-        if action:
-            reward += action.priority * 5
+        elif action_type == "STOP" and selected_train:
+            selected_train.wait_time += 1
+            reward -= 2
 
-        for train in current_trains:
-            if train != action:
-                reward -= train.wait_time * 0.1
+        #  waiting penalty
+        for t in trains:
+            reward -= t.wait_time * 0.5
 
-        self.state_manager.update(action)
+        # priority reward
+        if selected_train:
+            reward += selected_train.priority * 5
 
         self.time_step += 1
 

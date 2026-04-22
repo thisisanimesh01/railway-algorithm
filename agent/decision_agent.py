@@ -15,40 +15,45 @@ class DecisionAgent:
     def get_state_key(self, state):
         return tuple(
             (
-                t.train_id,
-                t.current_station,
-                t.next_station,
-                t.priority,
-                t.wait_time
+                t["id"],
+                t["current"],
+                t["next"],
+                t["priority"],
+                t["wait_time"],
+                t["remaining_stops"]
             )
-            for t in state["waiting_trains"]
+            for t in state["trains"]
         )
 
     def choose_action(self, state):
-        trains = state["waiting_trains"]
+        actions = []
 
-        if not trains:
+        for t in state["trains"]:
+            actions.append(("MOVE", t["id"]))
+            actions.append(("STOP", t["id"]))
+
+        if not actions:
             return None
 
         if random.random() < self.epsilon:
-            return random.choice(trains)
+            return random.choice(actions)
 
         state_key = self.get_state_key(state)
 
         if state_key not in self.q_table:
             self.q_table[state_key] = {}
 
-        best_train = None
+        best_action = None
         best_value = -999
 
-        for train in trains:
-            value = self.q_table[state_key].get(train.train_id, 0)
+        for action in actions:
+            value = self.q_table[state_key].get(action, 0)
 
             if value > best_value:
                 best_value = value
-                best_train = train
+                best_action = action
 
-        return best_train if best_train else random.choice(trains)
+        return best_action if best_action else random.choice(actions)
 
     def update_q(self, state, action, reward, next_state):
         if action is None:
@@ -63,15 +68,17 @@ class DecisionAgent:
         if next_key not in self.q_table:
             self.q_table[next_key] = {}
 
-        current_q = self.q_table[state_key].get(action.train_id, 0)
+        current_q = self.q_table[state_key].get(action, 0)
 
         max_next_q = 0
         if self.q_table[next_key]:
             max_next_q = max(self.q_table[next_key].values())
 
-        new_q = current_q + self.alpha * (reward + self.gamma * max_next_q - current_q)
+        new_q = current_q + self.alpha * (
+            reward + self.gamma * max_next_q - current_q
+        )
 
-        self.q_table[state_key][action.train_id] = new_q
+        self.q_table[state_key][action] = new_q
 
     def decay_epsilon(self):
         if self.epsilon > self.min_epsilon:
