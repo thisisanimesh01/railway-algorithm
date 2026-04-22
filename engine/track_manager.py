@@ -37,3 +37,10 @@ class TrackManager:
     def release_all(self):
         for key in self.track_usage:
             self.track_usage[key] = 0
+
+    def occupy(self, from_station, to_station):
+        if (from_station, to_station) not in self.track_capacity:
+            self.set_capacity(from_station, to_station, 2)
+
+        if self.can_use(from_station, to_station):
+            self.track_usage[(from_station, to_station)] += 1
